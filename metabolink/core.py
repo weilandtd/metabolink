@@ -87,8 +87,8 @@ def find_precursor_sets(metabolite_id, model, params=DEFAULT_PARAMETERS, defined
     # TODO process the lumps to generate a list of precursor metabolite sets 
     # lumps dict metabolite id -> lump object 
 
-    
+    precursor_sets = {metabolite.id: [lump.metabolites for lump in met_lumps] for metabolite, met_lumps in lumps.items()}
 
-    return lumps
+    return precursor_sets
 
 
