@@ -12,12 +12,12 @@ DEFAULT_PARAMETERS = {
     'core_subsystems': [],
     'extracellular_system': [],
     'timeout': 3600,  # max time in s
-    "constraint_method": 'both',
+    "constraint_method": 'integer',  # 'integer' or 'continuous'
     # Stuff we dont need for this purpose
     "small_metabolites": [],
     "cofactor_pairs": [],
     "inorganics": [],
-    "max_lumps_per_BBB": 10  # Maximal number of alternatives
+    "max_lumps_per_BBB": 100  # Maximal number of alternatives
 }
 
 def find_lumps(metabolite_sink, model, params=DEFAULT_PARAMETERS, 
@@ -36,7 +36,7 @@ def find_lumps(metabolite_sink, model, params=DEFAULT_PARAMETERS,
         return lumps
 
 
-def find_precursor_sets(metabolite_id, model, params=DEFAULT_PARAMETERS, defined_precursors=None):   
+def find_precursor_sets(metabolite_id, model, params=DEFAULT_PARAMETERS, defined_precursors=None, method='min'):   
 
     if defined_precursors is None:
         core_reactions = [r.id for r in model.reactions if not r in model.boundary]
@@ -75,11 +75,13 @@ def find_precursor_sets(metabolite_id, model, params=DEFAULT_PARAMETERS, defined
         model.objective = r
         solution = model.optimize()
         if solution.objective_value < EPSILON:
+            # Remove the sink/biomass reaction
+            model.remove_reactions([r])
             raise ValueError("Metabolites cannot be produced")
         else:
             print(f"Metabolites {metabolite_id} can be simultanously produced {solution.objective_value}") 
 
-    lumps = find_lumps(r.id, model, params=params, core_reactions=core_reactions)
+    lumps = find_lumps(r.id, model, params=params, core_reactions=core_reactions, method=method)
 
     # Remove the sink/biomass reaction
     model.remove_reactions([r])
@@ -87,8 +89,7 @@ def find_precursor_sets(metabolite_id, model, params=DEFAULT_PARAMETERS, defined
     # TODO process the lumps to generate a list of precursor metabolite sets 
     # lumps dict metabolite id -> lump object 
 
-    precursor_sets = {metabolite.id: [set(lump.metabolites) for lump in met_lumps] 
-                      for metabolite, met_lumps in lumps.items()}
+    precursor_sets = {metabolite.id: [lump.metabolites for lump in met_lumps] for metabolite, met_lumps in lumps.items()}
 
     return precursor_sets
 

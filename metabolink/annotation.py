@@ -2,7 +2,7 @@
 import numpy as np
 
 
-def find_metabolites_from_annotation(id, model):
+def find_metabolites_from_annotation(id, model, id_type=None):
     """
     Find metabolites in a model based on a given annotation id
 
@@ -25,8 +25,10 @@ def find_metabolites_from_annotation(id, model):
                     # Compare only last 5 digits of HMDB ids
                     if id[-5:] in [i[-5:] for i in ids]:
                         metabolites.append(met.id)
-                if id in ids:
-                    metabolites.append(met.id)
+                # For all other id_types compare the full id
+                else:
+                    if id in ids:
+                        metabolites.append(met.id)
         if metabolites not in [[], None]:            
             return metabolites
         else:
