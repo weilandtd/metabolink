@@ -69,7 +69,7 @@ def find_precursor_sets(metabolite_id, model, params=DEFAULT_PARAMETERS, defined
         r.add_metabolites({model.metabolites.get_by_id(met_id): -1 for met_id in metabolite_id})
 
         # Add the reaction to the model
-        model.add_reaction(r)
+        model.add_reactions([r,])
 
         # Test if all the metabolites can be produced
         model.objective = r
